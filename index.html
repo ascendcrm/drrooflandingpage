@@ -514,20 +514,6 @@
         <h2>Trusted on doorsteps across New England.</h2>
       </div>
 
-      <div class="rating-band">
-        <div>
-          <div class="rating-score">4.5<span style="font-size:22px;">/5</span></div>
-          <div class="stars">★★★★★</div>
-          <div class="rating-meta">Average customer rating</div>
-        </div>
-        <div class="rating-divider"></div>
-        <div class="rating-points">
-          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Built on real referrals, not ad budgets</div>
-          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Licensed &amp; fully insured (CSL# 106103)</div>
-          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Serving New England homeowners since 2007</div>
-        </div>
-      </div>
-
       <div class="testi-grid">
         <div class="testi-card">
           <span class="quote-mark">"</span>
@@ -696,16 +682,17 @@
     a.addEventListener('click', function(){ navLinks.classList.remove('open'); });
   });
 
-  // animated stat counters
+  // animated stat counters — replay every time the section scrolls into view
   var stats = document.querySelectorAll('.stat .num');
-  var animated = false;
+  var statsRunning = false;
+
   function animateStats(){
-    if(animated) return;
-    animated = true;
+    if(statsRunning) return;
+    statsRunning = true;
+    var pending = stats.length;
     stats.forEach(function(el){
       var target = parseInt(el.getAttribute('data-target'), 10);
       var suffix = el.getAttribute('data-suffix') || '';
-      var start = 0;
       var duration = 1200;
       var startTime = null;
       function step(ts){
@@ -714,16 +701,32 @@
         var eased = 1 - Math.pow(1 - progress, 3);
         var val = Math.round(eased * target);
         el.textContent = val + suffix;
-        if(progress < 1) requestAnimationFrame(step);
+        if(progress < 1){
+          requestAnimationFrame(step);
+        } else {
+          pending--;
+          if(pending <= 0){ statsRunning = false; }
+        }
       }
       requestAnimationFrame(step);
     });
   }
+
+  function resetStats(){
+    stats.forEach(function(el){
+      var suffix = el.getAttribute('data-suffix') || '';
+      el.textContent = '0' + suffix;
+    });
+  }
+
   var conditionsSection = document.getElementById('conditions');
   if('IntersectionObserver' in window){
     var obs = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
-        if(entry.isIntersecting){ animateStats(); obs.disconnect(); }
+        if(entry.isIntersecting){
+          resetStats();
+          animateStats();
+        }
       });
     }, {threshold:0.3});
     obs.observe(conditionsSection);
